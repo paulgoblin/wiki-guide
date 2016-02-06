@@ -1,0 +1,31 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paulgoblin/wiki-guide-frontend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/paulgoblin/wiki-guide-frontend/issues"
+  },
+  "homepage": "https://github.com/paulgoblin/wiki-guide-frontend#readme",
+  "dependencies": {
+    "body-parser": "^1.14.2",
+    "compression": "^1.6.1",
+    "cookie-parser": "^1.4.1",
+    "cors": "^2.7.1",
+    "express": "^4.13.4",
+    "jwt-simple": "^0.4.1",
+    "kerberos": "0.0.18",
+    "moment": "^2.11.2",
+    "mongoose": "^4.4.2",
+    "morgan": "^1.6.1"
+  }
+}
