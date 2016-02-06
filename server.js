@@ -3,7 +3,6 @@
 const PORT         = process.env.PORT || 3000
     , express      = require('express')
     , bodyParser   = require('body-parser')
-    , cookieParser   = require('cookie-parser')
     , morgan       = require('morgan')
     , cors         = require('cors')
     , compression  = require('compression')
@@ -30,7 +29,6 @@ app.use(compression());
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded( {extended: true} ));
 app.use(bodyParser.json());
-app.use(cookieParser());
 
 // ROUTES
 app.use('/', (req, res) => {
