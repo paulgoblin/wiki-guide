@@ -1,15 +1,15 @@
 'use strict';
 
-const express        = require('express')
-    // , User           = require('../models/user')
-    // , Resource       = require('../models/resource')
+const express  = require('express')
+    , Resource = require('../models/resource');
     // , authMiddleware = require('../util/auth-middleware')
-    // , combinedQuery  = require('../util/combinedQuery');
 
 let router = express.Router();
 
 router.get('/', (req, res) => {
-  res.status(200).send("here's your resources");
+  Resource.find({}, (err, resources) => {
+    res.status(err ? 400 : 200).send(err || resources)
+  })
 })
 
 module.exports = router;

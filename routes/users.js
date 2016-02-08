@@ -2,10 +2,7 @@
 
 const express        = require('express')
     , User           = require('../models/user')
-    // , Resource       = require('../models/resource')
-    // , authMiddleware = require('../util/auth-middleware')
-    // , combinedQuery  = require('../util/combinedQuery');
-
+    , authMiddleware = require('../util/auth-middleware');
 let router = express.Router();
 
 router.post('/register', (req, res) => {
@@ -20,9 +17,14 @@ router.post('/login', (req, res) => {
   });
 });
 
-
 router.get('/', (req, res) => {
   res.status(200).send("here's your users");
+})
+
+router.get('/:userId', authMiddleware, (req, res) => {
+  User.getOneAuth(req, res, (err, user, res) => {
+    res.send(err || user);
+  })
 })
 
 module.exports = router;

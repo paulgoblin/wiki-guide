@@ -35,7 +35,6 @@ app.use(bodyParser.json());
 app.use('/users', require('./routes/users'));
 app.use('/resources', require('./routes/resources'));
 app.use('/', (req, res) => {
-  console.log("in SLASH!!", req.url);
   res.status(200).send(`Welcome to ZOMBO.C *cough* I mean, wiki-guide-api. We\'re on the air.\n\n\nYou probably meant to go to ${CONST.frontEndUrl}`)
 });
 

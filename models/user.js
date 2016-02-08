@@ -15,7 +15,15 @@ let User;
 let userSchema = mongoose.Schema({
   username: {type: String, required: true, unique: true},
   password: {type: String, required: true, select: false},
-  email: {type: String, select: false}
+  email: {type: String, select: false},
+  likes: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Resource' }],
+    default: [],
+  },
+  strikes: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Resource' }],
+    default: [],
+  },
 });
 
 userSchema.methods.token = function() {
@@ -95,7 +103,10 @@ userSchema.statics.register = function(userInfo, cb) {
         console.log("new USER", newUser);
 
         newUser.save((err, savedUser) => {
-          if(err || !savedUser) return cb('Username or email already taken.');
+          if(err || !savedUser){
+            console.log("error saving new user", err);
+            return cb('Username or email already taken.');
+          }
           if(savedUser.email){
              let emailData = {
                 from: `welcome@${CONST.domainName}`,
@@ -120,6 +131,21 @@ userSchema.statics.register = function(userInfo, cb) {
     });
   });
 };
+
+userSchema.statics.getOneAuth = (req, res, cb) => {
+  if (req.userId !== req.params.userId) {
+    res.status(403);
+    return cb('not auhorized', null, res)
+  } else {
+    User.findById(req.params.userId, (err, user) => {
+      if (err || !user) {
+        console.log("error at User.getOneAuth", err || 'no user found');
+        return cb('touble finding a user', null, res.status(400));
+      }
+      return cb(null, user, res.status(400))
+    })
+  }
+}
 
  User = mongoose.model('User', userSchema);
  module.exports = User;
