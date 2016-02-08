@@ -7,8 +7,21 @@ const express  = require('express')
 let router = express.Router();
 
 router.get('/', (req, res) => {
-  Resource.find({}, (err, resources) => {
+  Resource.find(req.body.query || {}, (err, resources) => {
     res.status(err ? 400 : 200).send(err || resources)
+  })
+})
+
+router.get('/id/:resourceId', (req, res) => {
+  Resource.findById(req.params.resourceId, (err, resource) => {
+    res.status(err ? 400 : 200).send(err || resource)
+  })
+})
+
+router.post('/', (req, res) => {
+  console.log("req.body", req.body);
+  Resource.create(req.body, (err, savedResource) => {
+    res.status(err ? 400 : 200).send(err || savedResource)
   })
 })
 
