@@ -125,7 +125,7 @@ userSchema.statics.register = function(userInfo, cb) {
           savedUser = savedUser.toObject();
           delete savedUser.password;
           console.log("returning saved user", savedUser);
-          return cb(err, token );
+          return cb(err, token);
         })
       });
     });
@@ -142,7 +142,7 @@ userSchema.statics.getOneAuth = (req, res, cb) => {
         console.log("error at User.getOneAuth", err || 'no user found');
         return cb('touble finding a user', null, res.status(400));
       }
-      return cb(null, user, res.status(400))
+      return cb(null, user, res.status(200))
     })
   }
 }

@@ -1,14 +1,14 @@
 'use strict';
 
 const express  = require('express')
-    , Resource = require('../models/resource');
-    // , authMiddleware = require('../util/auth-middleware')
+    , Resource = require('../models/resource')
+    , authMiddleware = require('../util/auth-middleware');
 
 let router = express.Router();
 
-router.get('/', (req, res) => {
-  Resource.find(req.body.query || {}, (err, resources) => {
-    res.status(err ? 400 : 200).send(err || resources)
+router.post('/getDeck/:miles', authMiddleware, (req, res) => {
+  Resource.getDeck(req, (err, resources) => {
+    res.status(err ? 400 : 200).send(err || resources);
   })
 })
 
