@@ -6,6 +6,7 @@ const mongoose = require('mongoose')
     , moment   = require('moment')
     , CONFIG   = require('../util/auth-config')
     , CONST    = require('../util/constants')
+    , Resource = require('./resource')
     , api_key  = process.env.MAILGUN_KEY
     , domain   = process.env.MAILGUN_DOMAIN
     , mailgun  = require('mailgun-js')({apiKey: api_key, domain: domain});
@@ -25,6 +26,33 @@ let userSchema = mongoose.Schema({
     default: [],
   },
 });
+
+userSchema.statics.likeResource = function(resourceId, userId, cb) {
+  let updateUser = new Promise( (resolve, reject) => {
+    User.findByIdAndUpdate(resourceId
+      , { $addToSet: {"likes": resourceId } }
+      , (err) => {
+        if (err) return reject(err);
+        resolve();
+    })
+  })
+  let updateResource = new Promise( (resolve, reject) => {
+    Resource.findByIdAndUpdate(resourceId
+      , { $inc: {"likes": 1 } }
+      , (err) => {
+        if (err) return reject(err);
+        resolve();
+    })
+  })
+
+  Promise.all([updateUser, updateResource]).then( (value) => {
+    cb(null, "success")
+  }, (err) => {
+    console.log("error liking resource", resourceId, userId, err);
+    cb(err)
+  })
+
+}
 
 userSchema.methods.token = function() {
   let payload = {
@@ -140,7 +168,7 @@ userSchema.statics.getOneAuth = (req, res, cb) => {
     User.findById(req.params.userId, (err, user) => {
       if (err || !user) {
         console.log("error at User.getOneAuth", err || 'no user found');
-        return cb('touble finding a user', null, res.status(400));
+        return cb('error finding a user', null, res.status(400));
       }
       return cb(null, user, res.status(200))
     })

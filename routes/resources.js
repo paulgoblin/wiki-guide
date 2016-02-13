@@ -25,7 +25,6 @@ router.get('/id/:resourceId', (req, res) => {
 })
 
 router.post('/', (req, res) => {
-  console.log("req.body", req.body);
   Resource.create(req.body, (err, savedResource) => {
     res.status(err ? 400 : 200).send(err || savedResource)
   })

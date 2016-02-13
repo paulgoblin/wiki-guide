@@ -30,4 +30,10 @@ router.get('/user/:userId', authMiddleware, (req, res) => {
   })
 })
 
+router.post('/likeResource/:resourceId', authMiddleware, (req, res) => {
+  User.likeResource(req.params.resourceId, req.userId, (err, msg) =>{
+    res.status(err ? 400 : 200).send(err || msg);
+  })
+})
+
 module.exports = router;
