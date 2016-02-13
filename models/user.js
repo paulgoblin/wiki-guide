@@ -1,15 +1,16 @@
 'use strict';
 
-const mongoose = require('mongoose')
-    , jwt      = require('jwt-simple')
-    , bcrypt   = require('bcryptjs')
-    , moment   = require('moment')
-    , CONFIG   = require('../util/auth-config')
-    , CONST    = require('../util/constants')
-    , Resource = require('./resource')
-    , api_key  = process.env.MAILGUN_KEY
-    , domain   = process.env.MAILGUN_DOMAIN
-    , mailgun  = require('mailgun-js')({apiKey: api_key, domain: domain});
+const mongoose   = require('mongoose')
+    , jwt        = require('jwt-simple')
+    , bcrypt     = require('bcryptjs')
+    , moment     = require('moment')
+    , CONFIG     = require('../util/auth-config')
+    , CONST      = require('../util/constants')
+    , Resource   = require('./resource')
+    , api_key    = process.env.MAILGUN_KEY
+    , domain     = process.env.MAILGUN_DOMAIN
+    , jwt_secret = process.env.JWT_SECRET
+    , mailgun    = require('mailgun-js')({apiKey: api_key, domain: domain});
 
 let User;
 
@@ -86,7 +87,7 @@ userSchema.methods.token = function() {
     exp: moment().add(CONFIG.expTime.num, CONFIG.expTime.unit).unix(),
     username: this.username,
   };
-  return jwt.encode(payload, process.env.JWT_SECRET);
+  return jwt.encode(payload, jwt_secret);
 };
 
 
