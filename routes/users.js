@@ -36,4 +36,10 @@ router.post('/likeResource/:resourceId', authMiddleware, (req, res) => {
   })
 })
 
+router.post('/strikeResource/:resourceId', authMiddleware, (req, res) => {
+  User.strikeResource(req.params.resourceId, req.userId, (err, msg) =>{
+    res.status(err ? 400 : 200).send(err || msg);
+  })
+})
+
 module.exports = router;

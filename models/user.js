@@ -51,7 +51,32 @@ userSchema.statics.likeResource = function(resourceId, userId, cb) {
     console.log("error liking resource", resourceId, userId, err);
     cb(err)
   })
+}
 
+userSchema.statics.strikeResource = function(resourceId, userId, cb) {
+  let updateUser = new Promise( (resolve, reject) => {
+    User.findByIdAndUpdate(resourceId
+      , { $addToSet: {"strikes": resourceId } }
+      , (err) => {
+        if (err) return reject(err);
+        resolve();
+    })
+  })
+  let updateResource = new Promise( (resolve, reject) => {
+    Resource.findByIdAndUpdate(resourceId
+      , { $inc: {"strikes": 1 } }
+      , (err) => {
+        if (err) return reject(err);
+        resolve();
+    })
+  })
+
+  Promise.all([updateUser, updateResource]).then( (value) => {
+    cb(null, "success")
+  }, (err) => {
+    console.log("error striking resource", resourceId, userId, err);
+    cb(err)
+  })
 }
 
 userSchema.methods.token = function() {
