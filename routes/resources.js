@@ -12,6 +12,12 @@ router.post('/getDeck/:miles', authMiddleware, (req, res) => {
   })
 })
 
+router.get('/', authMiddleware, (req, res) => {
+  Resource.find({}, (err, resources) => {
+    res.status(err ? 400 : 200).send(err || resources);
+  })
+})
+
 router.get('/id/:resourceId', (req, res) => {
   Resource.findById(req.params.resourceId, (err, resource) => {
     res.status(err ? 400 : 200).send(err || resource)

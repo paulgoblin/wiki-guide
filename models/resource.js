@@ -37,7 +37,6 @@ resourceSchema.statics.getDeck = (req, cb) => {
       console.log("error finding resources", err);
       return cb(err);
     } else {
-      console.log("got resources", resources);
       return cb(null, resources)
     }
   })
