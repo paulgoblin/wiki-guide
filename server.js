@@ -23,7 +23,8 @@ let corsOptions = {
     callback(null, originIsWhitelisted);
   }
 };
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
+app.use(cors());
 
 // GENERAL MIDDLEWARE
 app.use(compression());
