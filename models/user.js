@@ -30,16 +30,18 @@ let userSchema = mongoose.Schema({
 
 userSchema.statics.likeResource = function(resourceId, userId, cb) {
   let updateUser = new Promise( (resolve, reject) => {
-    User.findByIdAndUpdate(resourceId
-      , { $addToSet: {"likes": resourceId } }
-      , (err) => {
+    User.findByIdAndUpdate(userId
+      , { $addToSet: { "likes": resourceId } }
+      , { new: true }
+      , (err, newUser) => {
         if (err) return reject(err);
+        console.log("updated user", newUser);
         resolve();
     })
   })
   let updateResource = new Promise( (resolve, reject) => {
     Resource.findByIdAndUpdate(resourceId
-      , { $inc: {"likes": 1 } }
+      , { $inc: { "likes": 1 } }
       , (err) => {
         if (err) return reject(err);
         resolve();
@@ -56,8 +58,8 @@ userSchema.statics.likeResource = function(resourceId, userId, cb) {
 
 userSchema.statics.strikeResource = function(resourceId, userId, cb) {
   let updateUser = new Promise( (resolve, reject) => {
-    User.findByIdAndUpdate(resourceId
-      , { $addToSet: {"strikes": resourceId } }
+    User.findByIdAndUpdate(userId
+      , { $addToSet: { "strikes": resourceId } }
       , (err) => {
         if (err) return reject(err);
         resolve();
@@ -65,7 +67,7 @@ userSchema.statics.strikeResource = function(resourceId, userId, cb) {
   })
   let updateResource = new Promise( (resolve, reject) => {
     Resource.findByIdAndUpdate(resourceId
-      , { $inc: {"strikes": 1 } }
+      , { $inc: { "strikes": 1 } }
       , (err) => {
         if (err) return reject(err);
         resolve();
