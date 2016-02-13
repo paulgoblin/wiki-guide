@@ -21,10 +21,12 @@ let userSchema = mongoose.Schema({
   likes: {
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Resource' }],
     default: [],
+    select: true
   },
   strikes: {
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Resource' }],
     default: [],
+    select: true
   },
 });
 
@@ -193,7 +195,9 @@ userSchema.statics.getOneAuth = (req, res, cb) => {
     res.status(403);
     return cb('not auhorized', null, res)
   } else {
-    User.findById(req.params.userId, (err, user) => {
+    User.findById(req.params.userId)
+    .populate('likes')
+    .exec((err, user) => {
       if (err || !user) {
         console.log("error at User.getOneAuth", err || 'no user found');
         return cb('error finding a user', null, res.status(400));
