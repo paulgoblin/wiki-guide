@@ -24,8 +24,8 @@ resourceSchema.statics.getDeck = (req, cb) => {
   let radius = req.params.miles;
   let query = {};
 
-  let latRad = radius/69; // converts radius to degrees
-  let longRad = (radius/69)*( (180 - Math.abs(loc.lat))/180 );
+  let latRad = radius/69.2; // converts radius to degrees
+  let longRad = (radius/69.2)*( (180 - Math.abs(loc.lat))/180 );
   let latR = { max: loc.lat + latRad, min: loc.lat - latRad };
   let longR = { max: loc.long + longRad, min: loc.long - longRad };
   query.lat = { $lt: latR.max, $gt: latR.min };
