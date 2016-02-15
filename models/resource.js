@@ -30,6 +30,9 @@ resourceSchema.statics.getDeck = (req, cb) => {
   let longR = { max: loc.long + longRad, min: loc.long - longRad };
   query.lat = { $lt: latR.max, $gt: latR.min };
   query.long = { $lt: longR.max, $gt: longR.min };
+  let likes = user.likes.map((res) => res._id);
+  let viewedResources = new Set(likes.concat(user.strikes));
+  query._id = { $nin: Array.from(viewedResources) }
   console.log("resource query", query);
 
   Resource.find(query, (err, resources) => {
