@@ -6,7 +6,7 @@ const express  = require('express')
 
 let router = express.Router();
 
-router.post('/getDeck/:miles', authMiddleware, (req, res) => {
+router.post('/getDeck/:miles/:lat/:long', authMiddleware, (req, res) => {
   Resource.getDeck(req, (err, resources) => {
     res.status(err ? 400 : 200).send(err || resources);
   })
