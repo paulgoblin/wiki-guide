@@ -28,6 +28,7 @@
     "express": "^4.13.4",
     "jwt-simple": "^0.4.1",
     "kerberos": "0.0.18",
+    "lodash": "^4.5.0",
     "mailgun-js": "^0.7.7",
     "moment": "^2.11.2",
     "mongoose": "^4.4.2",

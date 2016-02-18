@@ -3,6 +3,8 @@
 const mongoose = require('mongoose')
     , request  = require('request')
     , async    = require('async')
+    , _        = require('lodash')
+    , CONST    = require('../util/constants')
     , wikiApi  = require('../APIs/wikipedia');
 
 let imageSize = '370px';
@@ -32,59 +34,67 @@ resourceSchema.statics.getDeck = (req, cb) => {
   let radius = req.params.miles;
   let query = {};
 
-  // wikiApi.geoSearch(loc, (err, pages) => {
-  //   if (err) return cb(err)
-  //
-  //   let deck = [];
-  //
-  //   async.forEachOf(pages, function(page, key, asynccb) {
-  //     resourceFromWikiPage(page, function(err, resource){
-  //       if (err) return asynccb(err);
-  //       deck.push(resource);
-  //       asynccb();
-  //     });
-  //   }, function(err) {
-  //     if (err) return cb(err);
-  //     return cb(null, deck);
-  //   });
-  // });
-
-
-
-  let foundNearby = new Promise(function(resolve, reject){
-    wikiApi.findNearby(loc, (err, pages) => {
-      if (err || !pages) return resolve([]);
-      pages = new Set( pages.map(page => page.pageid) );
-      resolve( pages );
-    })
+  async.auto({
+    findNearby: function(autoCb){
+      wikiApi.findNearby(loc, (err, pages) => {
+        if (err || !pages) return autoCb(null, []);
+        pages = new Set( pages.map(page => page.pageid) );
+        autoCb(null, pages);
+      });
+    },
+    findResources: function(autoCb){
+      query = createDistQuery(query, loc, radius);
+      console.log("resource query", query);
+      Resource.find(query, (err, resources) => {
+        if (err) {
+          console.log("error finding resources", err);
+          return autoCb(err);
+        } else {
+          return autoCb(null, resources);
+        }
+      })
+    },
+    findNewPages: ['findNearby', 'findResources', function(autoCb, results){
+      let nearbyPages = results.findNearby;
+      let foundResources = results.findResources;
+      foundResources.forEach((resource) => {
+        if (nearbyPages.has(resource.pageid)) nearbyPages.delete(resource.pageid);
+      })
+      let newPages = _.shuffle(nearbyPages).slice(0, CONST.newPageLim);
+      autoCb(null, newPages)
+    }],
+    getNewPageInfo: ['findNewPages', function(autoCb, results) {
+      let pageIds = results.findNewPages;
+      wikiApi.getPageInfo(pageIds, (err, pages) => {
+        autoCb(null, pages || {});
+      })
+    }],
+    conditionKnownResources: ['findNewPages', function(autoCb, results){
+      let resources = results.findResources;
+      resources = filterSeenResources(resources, user);
+      // apply sorting/ranking here
+      autoCb(null, resources);
+    }],
+    createNewResources: ['getNewPageInfo', function(autoCb, results) {
+      let pageInfo = results.getNewPageInfo;
+      async.map(Object.keys(pageInfo), (pageId, mapCb) => {
+        resourceFromWikiPage(pageInfo[pageId], mapCb);
+      }, (err, newResources) => {
+        if (err || !newResources) return autoCb(null, []);
+        autoCb(null, newResources.filter( resource => resource ));
+      })
+    }]
+  }, function(err, results) {
+    let deck = results.conditionKnownResources.concat(results.createNewResources)
+    cb(null, deck)
   })
 
-  let foundResources = new Promise(function(resolve, reject){
-    query = makeDistQuery(query, loc, radius);
-    query = makeLikesQuery(query, user);
-    console.log("resource query", query);
-    Resource.find(query, (err, resources) => {
-      if (err) {
-        console.log("error finding resources", err);
-        reject(err);
-      } else {
-        return resolve(resources);
-      }
-    })
-  })
+}
 
-  Promise.all([foundNearby, foundResources]).then(function(results){
-    let nearbyPages = results[0];
-    let foundResources = results[1];
-    foundResources.forEach((resource) => {
-      if (nearbyPages.has(resource.pageid)) nearbyPages.delete(resource.pageid);
-    })
-    console.log("nearbyPages", nearbyPages);
-    cb(null, results[1]);
-  }, function(err) {
-    cb(err);
-  })
-
+function filterSeenResources(resources, user) {
+  let likes = user.likes.map((resource) => resource._id);
+  let seen = new Set(likes.concat(user.strikes));
+  return resources.filter(resource => !seen.has(resource._id))
 }
 
 function resourceFromWikiPage(page, cb) {
@@ -101,16 +111,20 @@ function resourceFromWikiPage(page, cb) {
     long: page.coordinates[0].lon,
   };
   request.head(imgUrl, (err, resp) => {
-    if (err) return cb(err);
+    if (err) {
+      console.log("error getting img head", err);
+      return cb(err);
+    }
     resource.info.imgUrl = (resp.statusCode === 200) ? imgUrl : page.thumbnail.source;
+    console.log("saving resource", resource);
     Resource.create(resource, (err, savedResource) => {
-      if (err) console.log("error saving resource from page", err);
+      if (err || !savedResource) console.log("error saving resource from page", err || resource);
       cb(null, savedResource || resource);
     })
   })
 }
 
-function makeDistQuery(query, loc, radius) {
+function createDistQuery(query, loc, radius) {
   let latRad = radius/69.2; // converts radius to degrees
   let longRad = (radius/69.2)*( (180 - Math.abs(loc.lat))/180 );
   let latR = { max: loc.lat + latRad, min: loc.lat - latRad };
@@ -120,7 +134,7 @@ function makeDistQuery(query, loc, radius) {
   return query;
 }
 
-function makeLikesQuery(query, user) {
+function createLikesQuery(query, user) {
   let likes = user.likes.map((resource) => resource._id);
   let viewedResources = new Set(likes.concat(user.strikes));
   query._id = { $nin: Array.from(viewedResources) }
