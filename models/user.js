@@ -107,7 +107,6 @@ userSchema.statics.login = function(userInfo, cb) {
         let token = foundUser.token()
         foundUser = foundUser.toObject();
         delete foundUser.password;
-        console.log("Returning saved user", foundUser);
         return cb(err, token );
       } else {
         return cb('Incorrect username or password.');
@@ -181,7 +180,6 @@ userSchema.statics.register = function(userInfo, cb) {
           let token = savedUser.token()
           savedUser = savedUser.toObject();
           delete savedUser.password;
-          console.log("returning saved user", savedUser);
           return cb(err, token);
         })
       });

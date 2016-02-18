@@ -50,18 +50,19 @@ resourceSchema.statics.getDeck = (req, cb) => {
   // });
 
 
-  query = makeDistQuery(query, loc, radius);
-  query = makeLikesQuery(query, user);
-  console.log("resource query", query);
 
   let foundNearby = new Promise(function(resolve, reject){
     wikiApi.findNearby(loc, (err, pages) => {
       if (err || !pages) return resolve([]);
-      resolve( pages.map(page => page.pageid) );
+      pages = new Set( pages.map(page => page.pageid) );
+      resolve( pages );
     })
   })
 
   let foundResources = new Promise(function(resolve, reject){
+    query = makeDistQuery(query, loc, radius);
+    query = makeLikesQuery(query, user);
+    console.log("resource query", query);
     Resource.find(query, (err, resources) => {
       if (err) {
         console.log("error finding resources", err);
@@ -73,7 +74,12 @@ resourceSchema.statics.getDeck = (req, cb) => {
   })
 
   Promise.all([foundNearby, foundResources]).then(function(results){
-    console.log("got results", results[0]);
+    let nearbyPages = results[0];
+    let foundResources = results[1];
+    foundResources.forEach((resource) => {
+      if (nearbyPages.has(resource.pageid)) nearbyPages.delete(resource.pageid);
+    })
+    console.log("nearbyPages", nearbyPages);
     cb(null, results[1]);
   }, function(err) {
     cb(err);
