@@ -25,9 +25,11 @@ resourceSchema.statics.getDeck = (req, cb) => {
   let radius = req.params.miles;
   let query = {};
 
-  wikiApi.geoSearch(loc);
+  wikiApi.geoSearch(loc, (err, pages) => {
+    if (err) return cb(err)
+    return cb(null, pages)
+  });
 
-  return cb(null, "Say cheese!")
 
   // query = makeDistQuery(query, loc, radius);
   // query = makeLikesQuery(query, user);
