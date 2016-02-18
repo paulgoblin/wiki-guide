@@ -8,6 +8,7 @@ let router = express.Router();
 
 router.post('/getDeck/:miles/:lat/:long', authMiddleware, (req, res) => {
   Resource.getDeck(req, (err, resources) => {
+    console.log("sending resources.", "errors:", err);
     res.status(err ? 400 : 200).send(err || resources);
   })
 })

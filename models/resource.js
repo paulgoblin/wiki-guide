@@ -1,22 +1,25 @@
 'use strict';
 
 const mongoose = require('mongoose')
+    , request  = require('request')
+    , async    = require('async')
     , wikiApi  = require('../APIs/wikipedia');
 
 let Resource;
 
 let resourceSchema = mongoose.Schema({
+  pageid: { type: Number, required:true },
   info: {
-    title: {type: String, required: true},
-    url: {type: String, required: true},
-    imgUrl: {type: String,},
-    intro: {type: String,},
+    title:  { type: String, required: true },
+    url:    { type: String, required: true },
+    imgUrl: { type: String },
+    intro:  { type: String },
   },
-  lat: {type: Number, required: true},
-  long: {type: Number, required: true},
-  likes: {type: Number, default: 0},
-  strikes: {type: Number, default: 0},
-  category: { type: String, required: true },
+  lat: { type: Number, required: true },
+  long: { type: Number, required: true },
+  likes: { type: Number, default: 0 },
+  strikes: { type: Number, default: 0 },
+  category: { type: String, required: true  },
 });
 
 resourceSchema.statics.getDeck = (req, cb) => {
@@ -27,7 +30,19 @@ resourceSchema.statics.getDeck = (req, cb) => {
 
   wikiApi.geoSearch(loc, (err, pages) => {
     if (err) return cb(err)
-    return cb(null, pages)
+
+    let deck = [];
+
+    async.forEachOf(pages, function(page, key, asynccb) {
+      resourceFromWikiPage(page, function(err, resource){
+        if (err) return asynccb(err);
+        deck.push(resource);
+        asynccb();
+      });
+    }, function(err) {
+      if (err) return cb(err);
+      return cb(null, deck);
+    });
   });
 
 
@@ -45,8 +60,27 @@ resourceSchema.statics.getDeck = (req, cb) => {
   // })
 }
 
+function resourceFromWikiPage(page, cb) {
+  if (!page.thumbnail || !page.coordinates) return cb(null, null);
+  let imgUrl = page.thumbnail.source.replace(/\d*px/,'250px');
+  let resource = {
+    pageid: page.pageid,
+    info: {
+      title: page.title,
+      url: page.fullurl,
+      intro: page.extract
+    },
+    lat: page.coordinates[0].lat,
+    long: page.coordinates[0].lon,
+  };
+  request.head(imgUrl, (err, resp) => {
+    if (err) return cb(err);
+    resource.info.imgUrl = (resp.statusCode === 200) ? imgUrl : page.thumbnail.source
+    cb(null, resource);
+  })
+}
 
-var makeDistQuery = (query, loc, radius) => {
+function makeDistQuery(query, loc, radius) {
   let latRad = radius/69.2; // converts radius to degrees
   let longRad = (radius/69.2)*( (180 - Math.abs(loc.lat))/180 );
   let latR = { max: loc.lat + latRad, min: loc.lat - latRad };
@@ -56,7 +90,7 @@ var makeDistQuery = (query, loc, radius) => {
   return query;
 }
 
-var makeLikesQuery = (query, user) => {
+function makeLikesQuery(query, user) {
   let likes = user.likes.map((resource) => resource._id);
   let viewedResources = new Set(likes.concat(user.strikes));
   query._id = { $nin: Array.from(viewedResources) }
