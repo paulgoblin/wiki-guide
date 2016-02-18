@@ -37,7 +37,6 @@ userSchema.statics.likeResource = function(resourceId, userId, cb) {
       , { new: true }
       , (err, newUser) => {
         if (err) return reject(err);
-        console.log("updated user", newUser);
         resolve();
     })
   })
