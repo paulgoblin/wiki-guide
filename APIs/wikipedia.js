@@ -5,6 +5,7 @@ const request  = require('request')
 
 
 let WIKI_API = "https://en.wikipedia.org/w/api.php?action=query";
+
 let resourceInfoQuery = `&prop=info|extracts|pageimages|coordinates`   // props
     + `&exintro=&explaintext=&exchars=300&exlimit=${CONST.newPageLim}` // extracts
     + `&inprop=url`                                        // info
@@ -27,7 +28,7 @@ function geoSearch (loc ,cb) {
   })
 }
 
-function findNearby (loc, cb) {
+function findNearbyPages (loc, cb) {
   let lim = 500;
   let rad = 10000; //meters
   let query = `&list=geosearch`
@@ -37,7 +38,7 @@ function findNearby (loc, cb) {
     + `&format=json`;
     request(`${WIKI_API}${query}`, function (err, res, body) {
       if (err || res.statusCode !== 200) {
-        console.log("error at wikipApi.findNearby", err);
+        console.log("error at wikipApi.findNearbyPages", err);
         return cb(err)
       }
       return cb(null, JSON.parse(body).query.geosearch)
@@ -60,7 +61,7 @@ function getPageInfo (ids, cb) {
 
 module.exports = {
   geoSearch: geoSearch,
-  findNearby: findNearby,
+  findNearbyPages: findNearbyPages,
   getPageInfo: getPageInfo,
 }
 

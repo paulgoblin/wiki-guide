@@ -42,7 +42,7 @@ userSchema.statics.likeResource = function(resourceId, userId, cb) {
   })
   let updateResource = new Promise( (resolve, reject) => {
     Resource.findByIdAndUpdate(resourceId
-      , { $inc: { "likes": 1 } }
+      , { $inc: { "likes": 1, "total": 1 } }
       , (err) => {
         if (err) return reject(err);
         resolve();
@@ -68,7 +68,7 @@ userSchema.statics.strikeResource = function(resourceId, userId, cb) {
   })
   let updateResource = new Promise( (resolve, reject) => {
     Resource.findByIdAndUpdate(resourceId
-      , { $inc: { "strikes": 1 } }
+      , { $inc: { "total": 1 } }
       , (err) => {
         if (err) return reject(err);
         resolve();

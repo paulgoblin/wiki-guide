@@ -22,7 +22,7 @@ let resourceSchema = mongoose.Schema({
   lat: { type: Number, required: true },
   long: { type: Number, required: true },
   likes: { type: Number, default: 0 },
-  strikes: { type: Number, default: 0 },
+  total: { type: Number, default: 0 },
 });
 
 resourceSchema.statics.getDeck = (req, cb) => {
@@ -33,10 +33,11 @@ resourceSchema.statics.getDeck = (req, cb) => {
   let user = req.body.user || null;
   let radius = req.params.miles;
   let query = {};
+  console.log("seen", user.strikes);
 
   async.auto({
-    findNearby: function(autoCb){
-      wikiApi.findNearby(loc, (err, pages) => {
+    findNearbyPages: function(autoCb){
+      wikiApi.findNearbyPages(loc, (err, pages) => {
         if (err || !pages) return autoCb(null, []);
         pages = new Set( pages.map(page => page.pageid) );
         autoCb(null, pages);
@@ -54,8 +55,8 @@ resourceSchema.statics.getDeck = (req, cb) => {
         }
       })
     },
-    findNewPages: ['findNearby', 'findResources', function(autoCb, results){
-      let nearbyPages = results.findNearby;
+    findNewPages: ['findNearbyPages', 'findResources', function(autoCb, results){
+      let nearbyPages = results.findNearbyPages;
       let foundResources = results.findResources;
       foundResources.forEach((resource) => {
         if (nearbyPages.has(resource.pageid)) nearbyPages.delete(resource.pageid);
@@ -72,8 +73,8 @@ resourceSchema.statics.getDeck = (req, cb) => {
     conditionKnownResources: ['findNewPages', function(autoCb, results){
       let resources = results.findResources;
       resources = filterSeenResources(resources, user);
-      // apply sorting/ranking here
-      autoCb(null, resources);
+      resources = sortResources(resources);
+      autoCb(null, resources.slice(0, CONST.resourceLim));
     }],
     createNewResources: ['getNewPageInfo', function(autoCb, results) {
       let pageInfo = results.getNewPageInfo;
@@ -83,18 +84,29 @@ resourceSchema.statics.getDeck = (req, cb) => {
         if (err || !newResources) return autoCb(null, []);
         autoCb(null, newResources.filter( resource => resource ));
       })
-    }]
+    }],
   }, function(err, results) {
     let deck = results.conditionKnownResources.concat(results.createNewResources)
+    console.log("returning deck");
+    deck.forEach(resource => {
+      console.log(resource.info.title);
+    })
     cb(null, deck)
   })
 
 }
 
+function sortResources(resources) {
+
+  return resources
+}
+
 function filterSeenResources(resources, user) {
   let likes = user.likes.map((resource) => resource._id);
   let seen = new Set(likes.concat(user.strikes));
-  return resources.filter(resource => !seen.has(resource._id))
+  return resources.filter(resource => {
+    return !seen.has(resource._id.toString())
+  })
 }
 
 function resourceFromWikiPage(page, cb) {
@@ -116,7 +128,6 @@ function resourceFromWikiPage(page, cb) {
       return cb(err);
     }
     resource.info.imgUrl = (resp.statusCode === 200) ? imgUrl : page.thumbnail.source;
-    console.log("saving resource", resource);
     Resource.create(resource, (err, savedResource) => {
       if (err || !savedResource) console.log("error saving resource from page", err || resource);
       cb(null, savedResource || resource);
