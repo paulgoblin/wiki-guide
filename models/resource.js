@@ -5,7 +5,8 @@ const mongoose = require('mongoose')
     , async    = require('async')
     , _        = require('lodash')
     , CONST    = require('../util/constants')
-    , wikiApi  = require('../APIs/wikipedia');
+    , wikiApi  = require('../APIs/wikipedia')
+    , ranking  = require('../util/ranking');
 
 let imageSize = '370px';
 
@@ -97,8 +98,7 @@ resourceSchema.statics.getDeck = (req, cb) => {
 }
 
 function sortResources(resources) {
-
-  return resources
+  return ranking.sortResources(resources);
 }
 
 function filterSeenResources(resources, user) {
