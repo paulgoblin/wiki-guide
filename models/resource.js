@@ -6,7 +6,7 @@ const mongoose = require('mongoose')
     , _        = require('lodash')
     , CONST    = require('../util/constants')
     , wikiApi  = require('../APIs/wikipedia')
-    , ranking  = require('../util/ranking');
+    , helpers  = require('../util/helpers');
 
 let imageSize = '370px';
 
@@ -86,11 +86,9 @@ resourceSchema.statics.getDeck = (req, cb) => {
     }],
   }, function(err, results) {
     let allResults = results.conditionKnownResources.concat(results.createNewResources);
-    console.log('\n\n\n\n', allResults.length, results.conditionKnownResources.length, results.createNewResources.length, '\n\n\n\n')
-    let deck = ranking.createDeck(allResults);
+    let deck = helpers.createDeck(allResults, loc);
     cb(null, deck)
   })
-
 }
 
 
