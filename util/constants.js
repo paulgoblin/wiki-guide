@@ -5,5 +5,4 @@ module.exports = {
   domainName: "wikiguide.com",
   frontEndUrl: "http://paulgoblin.github.io/wiki-guide-frontend",
   newPageLim: 10,
-  resourceLim: 80,
 };

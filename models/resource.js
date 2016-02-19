@@ -34,7 +34,6 @@ resourceSchema.statics.getDeck = (req, cb) => {
   let user = req.body.user || null;
   let radius = req.params.miles;
   let query = {};
-  console.log("seen", user.strikes);
 
   async.auto({
     findNearbyPages: function(autoCb){
@@ -74,8 +73,7 @@ resourceSchema.statics.getDeck = (req, cb) => {
     conditionKnownResources: ['findNewPages', function(autoCb, results){
       let resources = results.findResources;
       resources = filterSeenResources(resources, user);
-      resources = sortResources(resources);
-      autoCb(null, resources.slice(0, CONST.resourceLim));
+      autoCb(null, resources);
     }],
     createNewResources: ['getNewPageInfo', function(autoCb, results) {
       let pageInfo = results.getNewPageInfo;
@@ -87,19 +85,14 @@ resourceSchema.statics.getDeck = (req, cb) => {
       })
     }],
   }, function(err, results) {
-    let deck = results.conditionKnownResources.concat(results.createNewResources)
-    console.log("returning deck");
-    deck.forEach(resource => {
-      console.log(resource.info.title);
-    })
+    let allResults = results.conditionKnownResources.concat(results.createNewResources);
+    console.log('\n\n\n\n', allResults.length, results.conditionKnownResources.length, results.createNewResources.length, '\n\n\n\n')
+    let deck = ranking.createDeck(allResults);
     cb(null, deck)
   })
 
 }
 
-function sortResources(resources) {
-  return ranking.sortResources(resources);
-}
 
 function filterSeenResources(resources, user) {
   let likes = user.likes.map((resource) => resource._id);

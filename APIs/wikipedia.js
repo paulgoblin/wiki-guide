@@ -50,6 +50,7 @@ function getPageInfo (ids, cb) {
   let query = '&pageids='
     + ids.reduce( (str, id) => `${str}|${id}`, '').slice(1)
     + resourceInfoQuery;
+    console.log("get page info query", query);
     request(`${WIKI_API}${query}`, function (err, res, body) {
       if (err || res.statusCode !== 200) {
         console.log("error at wikipApi.getPageInfo", err);
