@@ -199,6 +199,8 @@ userSchema.statics.getOneAuth = (req, res, cb) => {
         console.log("error at User.getOneAuth", err || 'no user found');
         return cb('error finding a user', null, res.status(400));
       }
+      // make most recent likes appear first
+      user.likes = user.likes.reverse();
       return cb(null, user, res.status(200))
     })
   }
