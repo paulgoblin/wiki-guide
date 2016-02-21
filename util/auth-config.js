@@ -5,6 +5,7 @@ module.exports = {
   refreshToken: false,
   saltRounds: 10,
   validatePassword: function(password) {
+    if (password) return (password.length >= 3);
     return true;
   },
   validateUsername: function(username) {
