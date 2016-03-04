@@ -19,6 +19,13 @@ router.post('/login', (req, res) => {
   });
 });
 
+router.post('/guest', (req, res) => {
+  User.createGuest((err, token) => {
+    if (err) console.log("error guestig", err);
+    res.status(err ? 400 : 200).send(err || token);
+  });
+})
+
 router.get('/user/:userId', authMiddleware, (req, res) => {
   User.getOneAuth(req, res, (err, user, res) => {
     res.send(err || user);

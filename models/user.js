@@ -93,6 +93,21 @@ userSchema.methods.token = function() {
   return jwt.encode(payload, jwt_secret);
 };
 
+userSchema.statics.createGuest = function(cb) {
+  let payload = {
+    id: CONST.guest_id,
+    iat: moment().unix(),
+    exp: moment().add(CONFIG.expTime.num, CONFIG.expTime.unit).unix(),
+    username: 'guest',
+  };
+  try {
+    cb(null, jwt.encode(payload, jwt_secret));
+  } catch (err) {
+    console.log('error creating guest token: ', err);
+    cb('Error guesting. Try signing up!')
+  }
+}
+
 
 userSchema.statics.login = function(userInfo, cb) {
   // look for user in database
@@ -191,6 +206,8 @@ userSchema.statics.getOneAuth = (req, res, cb) => {
   if (req.userId !== req.params.userId) {
     res.status(403);
     return cb('not auhorized', null, res)
+  } else if (req.userId === CONST.guest_id) {
+    cb(null, new User({username: 'guest', password: '', _id: CONST.guest_id}), res.status(200));
   } else {
     User.findById(req.params.userId)
     .populate('likes')
