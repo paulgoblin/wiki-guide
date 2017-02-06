@@ -16,7 +16,12 @@ mongoose.connect(mongoUrl);
 let app = express();
 
 // CORS
-let whitelist = ['https://paulgoblin.github.io', 'http://localhost:8000'];
+let whitelist = [
+  'https://paulgoblin.github.io',
+  'http://localhost:8000',
+  'http://lolcat:8000',
+  'http://192.168.0.16:8000',
+];
 let corsOptions = {
   origin: function(origin, callback) {
     let originIsWhitelisted = whitelist.indexOf(origin) !== -1;
